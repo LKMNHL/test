@@ -1,0 +1,44 @@
+import cv2
+import os
+
+# Images 폴더에서 사진을 가져와 해당 사진의 bounding box 정보가 있는 *.txt를 읽어서 입힌 후 새로운 폴더에 저장한다.
+
+img_folder_dir='C:/Users/gi513/PycharmProjects/icas/train_separatedTxt/train/images'
+txt_folder_dir='C:/Users/gi513/PycharmProjects/icas/train_separatedTxt/train/labelTxt'
+#바탕화면에 위치한 파일로 하니 경로에 한글이 떠서 오류가 생겼다.
+#그래서 데이터가 있는 파일을 옮겨서 영어만 있도록 하니 정상동작하였다.
+
+imgfile=os.listdir(img_folder_dir) #이미지 파일의 이름을 저장한다.
+txtfile=os.listdir(txt_folder_dir) #텍스트 파일의 이름을 저장한다.
+# print(imgfile) #정상동작 확인용
+# print(txtfile) #정상동작 확인용
+
+for i in range(len(imgfile)): #이미지파일의 개수만큼 반복한다.
+    imgFileName=img_folder_dir+"/"+imgfile[i] #이미지 파일을 읽기 위해 이름을 설정한다. #'/'를 붙여야 한다. => +로 붙여주기
+    image = cv2.imread(imgFileName) #해당 이미지 읽기
+
+    txtFileName=txt_folder_dir+"/"+txtfile[i] #이미지에 맞는 텍스트파일 @수정: 전체경로로 설정했다. @수정: 경로에 한글이 들어가지 않도록 위치를 옮겼다.
+    label=open(txtFileName) #해당 텍스트파일 열기
+    boxData=label.readlines() #텍스트파일의 데이터를 줄별로 읽는다. bounding box 좌표가 하나 당 한 줄씩 있기 때문이다.
+    boxM=len(boxData) #bounding box의 개수
+
+    boxList=[] #bounding box의 좌표 리스트 [[좌표1], [좌표2], ...]
+    for j in range(boxM):
+        boxList.append(boxData[j].split()) #boundig box 좌표를 리스트에 추가한다.
+
+        if boxList[j][8]=='stair_up':
+            color=255
+        else:
+            color=0
+
+        cv2.rectangle(image, (int(boxList[j][0]), int(boxList[j][1])), (int(boxList[j][4]), int(boxList[j][5])), (0, 255, color), 3) #rectangle함수를 통해 bounding box를 그린다.
+        #xmin   ymin    xmax    ymax    number이기 때문에 0~3 column은 고정된다.
+
+    # path='C:/Users/gi513/PycharmProjects/icas/train_separatedTxt/boundingBox/' #bounding box가 그려진 이미지를 저장할 경로이다.
+    # print(path+imgfile[i]) #경로 확인용
+    # cv2.imwrite(path+imgfile[i], image) #@!_img.empty() in function 'cv::imwrite' 오류가 발생한다. 경로에 한글이 있어서 그렇다고 한다.
+    boxList=[] #boxList를 비워서 다음 이미지에 bounding box그릴 준비
+
+    # label.close() #사용 후에는 텍스트파일을 닫는다.
+
+print("Complete") #완료되었을 때 출력
